@@ -96,7 +96,7 @@
             box-shadow: 0 5px 12px rgba(0,0,0,0.12);
         }
 
-        /* 모바일 햄버거 버튼 (기본적으로 PC에서는 안 보임) */
+        /* 햄버거 버튼 */
         .hamburger-btn {
             display: none;
             background: none;
@@ -108,6 +108,7 @@
             line-height: 1;
         }
 
+        /* 네비게이션 기본 (PC) */
         nav {
             background-color: var(--card-bg);
             border-bottom: 1px solid rgba(0,0,0,0.08);
@@ -342,27 +343,37 @@
         /* ---------------- 스마트폰 미디어 쿼리 (화면 폭 600px 이하) ---------------- */
         @media (max-width: 600px) {
             .hamburger-btn {
-                display: block; /* 모바일에서 햄버거 버튼 출력 */
+                display: block; /* 햄버거 버튼 출력 */
             }
 
+            /* 메뉴가 본문 위를 가리도록(오버레이) 수정 */
             nav {
-                display: none; /* 기본적으로 메뉴 숨김 */
+                display: none; 
+                position: absolute;
+                top: 100%; /* 헤더 바로 아래 위치 */
+                left: 0;
+                width: 100%;
+                background-color: var(--card-bg);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.15); /* 메뉴 떠있는 느낌의 그림자 */
+                z-index: 999; /* 본문 내용보다 위에 위치 */
+                border-bottom: 2px solid var(--main-color);
             }
 
             nav.active {
-                display: block; /* 햄버거 버튼 클릭 시 메뉴 펼침 */
+                display: block; /* 햄버거 버튼 클릭 시 덮어씌움 */
             }
 
             .nav-container {
                 flex-direction: column;
                 align-items: center;
                 padding: 15px 0;
-                gap: 10px;
+                gap: 12px;
             }
 
             .nav-container a {
-                width: 90%;
+                width: 85%;
                 text-align: center;
+                padding: 10px 0;
             }
 
             section {
@@ -386,19 +397,19 @@
                 <button class="hamburger-btn" onclick="toggleMenu()" aria-label="메뉴 열기">☰</button>
             </div>
         </div>
-    </header>
 
-    <!-- 상단 메뉴바 -->
-    <nav id="nav-menu">
-        <div class="nav-container">
-            <a href="#home" onclick="closeMenu()">🏚️ Home</a>
-            <a href="#profile" onclick="closeMenu()">👤 Profile</a>
-            <a href="#projects" onclick="closeMenu()">💻 Projects/Skills</a>
-            <a href="#growth" onclick="closeMenu()">🌱 Growth</a>
-            <a href="#playlab" onclick="closeMenu()">🎬 Play Lab</a>
-            <a href="#contact" onclick="closeMenu()">✉️ Contact</a>
-        </div>
-    </nav>
+        <!-- 상단 메뉴바 (header 내부로 이동시켜 위치 기준 설정) -->
+        <nav id="nav-menu">
+            <div class="nav-container">
+                <a href="#home" onclick="closeMenu()">🏚️ Home</a>
+                <a href="#profile" onclick="closeMenu()">👤 Profile</a>
+                <a href="#projects" onclick="closeMenu()">💻 Projects/Skills</a>
+                <a href="#growth" onclick="closeMenu()">🌱 Growth</a>
+                <a href="#playlab" onclick="closeMenu()">🎬 Play Lab</a>
+                <a href="#contact" onclick="closeMenu()">✉️ Contact</a>
+            </div>
+        </nav>
+    </header>
 
     <!-- 본문 내용 -->
     <main>
@@ -567,7 +578,7 @@
             document.getElementById('drink-name').innerText = currentDrink.name;
         }
 
-        /* 2. 클릭 파티클 효과 (버튼 포함 모든 클릭 시 발생) */
+        /* 2. 클릭 파티클 효과 */
         document.addEventListener('click', function(e) {
             const particleCount = 8;
             const mainColor = getComputedStyle(document.documentElement).getPropertyValue('--main-color').trim();
