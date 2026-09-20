@@ -42,6 +42,75 @@
             padding-bottom: 60px;
         }
 
+        /* ---------------- Login Modal ---------------- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-box {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 360px;
+            border: 2px solid var(--main-color);
+        }
+
+        .modal-box h2 {
+            color: var(--main-color);
+            margin-bottom: 10px;
+            font-size: 1.4rem;
+        }
+
+        .modal-box p {
+            font-size: 0.9rem;
+            color: var(--sub-text);
+            margin-bottom: 20px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .modal-input:focus {
+            border-color: var(--main-color);
+        }
+
+        .modal-btn {
+            width: 100%;
+            background-color: var(--main-color);
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .modal-btn:hover {
+            opacity: 0.9;
+        }
+
         /* ---------------- Header & Nav ---------------- */
         header {
             position: sticky;
@@ -65,6 +134,15 @@
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+
+        .user-tag {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--main-color);
+            background: var(--bg-color);
+            padding: 4px 10px;
+            border-radius: 12px;
         }
 
         .logo {
@@ -172,18 +250,39 @@
         /* ---------------- Home Section ---------------- */
         #home {
             text-align: center;
-            padding: 50px 30px;
+            padding: 40px 30px;
         }
 
-        #home h1 {
-            font-size: 1.8rem;
+        .greeting-header {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--main-color);
             margin-bottom: 10px;
         }
 
         #home p {
             color: var(--sub-text);
-            font-size: 1.05rem;
+            font-size: 0.98rem;
             transition: color var(--transition-speed);
+        }
+
+        /* ---------------- 다른 카드들과 동일한 너비의 미니 창 ---------------- */
+        .diary-mini-card {
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.04);
+            text-align: center;
+            border: 2px solid var(--main-color);
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+        }
+
+        .diary-mini-card span {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--main-color);
         }
 
         /* ---------------- Profile Section ---------------- */
@@ -288,7 +387,7 @@
         .guestbook-list {
             margin-top: 10px;
             text-align: left;
-            max-height: 100px;
+            max-height: 120px;
             overflow-y: auto;
             font-size: 0.82rem;
         }
@@ -343,24 +442,23 @@
         /* ---------------- 스마트폰 미디어 쿼리 (화면 폭 600px 이하) ---------------- */
         @media (max-width: 600px) {
             .hamburger-btn {
-                display: block; /* 햄버거 버튼 출력 */
+                display: block;
             }
 
-            /* 메뉴가 본문 위를 가리도록(오버레이) 수정 */
             nav {
                 display: none; 
                 position: absolute;
-                top: 100%; /* 헤더 바로 아래 위치 */
+                top: 100%;
                 left: 0;
                 width: 100%;
                 background-color: var(--card-bg);
-                box-shadow: 0 10px 20px rgba(0,0,0,0.15); /* 메뉴 떠있는 느낌의 그림자 */
-                z-index: 999; /* 본문 내용보다 위에 위치 */
+                box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+                z-index: 999;
                 border-bottom: 2px solid var(--main-color);
             }
 
             nav.active {
-                display: block; /* 햄버거 버튼 클릭 시 덮어씌움 */
+                display: block;
             }
 
             .nav-container {
@@ -384,21 +482,31 @@
 </head>
 <body>
 
+    <!-- 로그인 모달 -->
+    <div id="login-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h2>☕ 다이어리 방문</h2>
+            <p>닉네임(아이디)을 입력해 주세요</p>
+            <input type="text" id="user-id-input" class="modal-input" placeholder="닉네임 입력..." onkeyup="if(window.event.keyCode==13){handleLogin()}">
+            <button class="modal-btn" onclick="handleLogin()">입장하기</button>
+        </div>
+    </div>
+
     <!-- 헤더 영역 -->
     <header>
         <div class="header-container">
             <div class="logo">승미의 다이어리</div>
             <div class="header-right">
+                <span id="user-tag" class="user-tag" style="display: none;"></span>
                 <button class="drink-btn" onclick="changeDrinkTheme()">
                     <span id="drink-icon">🍵</span>
                     <span id="drink-name">말차라떼</span>
                 </button>
-                <!-- 햄버거 버튼 -->
                 <button class="hamburger-btn" onclick="toggleMenu()" aria-label="메뉴 열기">☰</button>
             </div>
         </div>
 
-        <!-- 상단 메뉴바 (header 내부로 이동시켜 위치 기준 설정) -->
+        <!-- 상단 메뉴바 -->
         <nav id="nav-menu">
             <div class="nav-container">
                 <a href="#home" onclick="closeMenu()">🏚️ Home</a>
@@ -413,11 +521,16 @@
 
     <!-- 본문 내용 -->
     <main>
-        <!-- Home -->
+        <!-- Home (인사말) -->
         <section id="home">
-            <h1>안녕하세요, 승미의 공간입니다 ☕</h1>
+            <h1 id="user-greeting-title" class="greeting-header">안녕하세요! 👋</h1>
             <p>미니멀하고 편안한 일상과 기록을 남기는 다이어리입니다.</p>
         </section>
+
+        <!-- 인사말과 프로필 사이의 미니 카드 -->
+        <div class="diary-mini-card">
+            <span>📖 승미의 다이어리</span>
+        </div>
 
         <!-- Profile -->
         <section id="profile">
@@ -508,6 +621,32 @@
 
     <!-- 스크립트 -->
     <script>
+        let currentUserId = "";
+
+        /* 로그인 처리 함수 */
+        function handleLogin() {
+            const input = document.getElementById('user-id-input');
+            const userId = input.value.trim();
+
+            if (!userId) {
+                alert("아이디(닉네임)를 입력해주세요!");
+                return;
+            }
+
+            currentUserId = userId;
+
+            // 모달 창 닫기
+            document.getElementById('login-modal').style.display = 'none';
+
+            // 상단 우측 유저 태그 표시
+            const userTag = document.getElementById('user-tag');
+            userTag.innerText = `👤 ${currentUserId}`;
+            userTag.style.display = 'inline-block';
+
+            // (닉네임)안녕하세요! 문구 설정
+            document.getElementById('user-greeting-title').innerText = `${currentUserId}님 안녕하세요! 👋`;
+        }
+
         /* 햄버거 메뉴 토글 기능 */
         function toggleMenu() {
             const nav = document.getElementById('nav-menu');
@@ -625,14 +764,17 @@
             document.getElementById('fortune-text').innerText = random;
         }
 
-        // (2) 미니 방명록
+        // (2) 수동 방명록 작성 (아이디 포함)
         function addMessage() {
             const input = document.getElementById('guestbook-input');
             const list = document.getElementById('guestbook-list');
-            if (input.value.trim() !== "") {
+            const text = input.value.trim();
+
+            if (text !== "") {
                 const item = document.createElement('div');
                 item.className = 'guestbook-item';
-                item.innerText = `💬 ${input.value}`;
+                const namePrefix = currentUserId ? `[${currentUserId}] ` : '';
+                item.innerText = `💬 ${namePrefix}${text}`;
                 list.prepend(item);
                 input.value = "";
             }
