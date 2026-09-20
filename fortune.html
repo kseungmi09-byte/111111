@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🥠 포춘쿠키 뽑기 - 승미의 다이어리</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <style>
+        :root {
+            --main-color: #2D6A4F;
+            --bg-color: #E8F5E9;
+            --card-bg: #FFFFFF;
+            --text-color: #1B4332;
+            --grid-color: rgba(27, 67, 50, 0.08);
+        }
+
+        body.dark-mode {
+            --bg-color: #121614;
+            --card-bg: #1E2622;
+            --text-color: #F0F5F2;
+            --grid-color: rgba(255, 255, 255, 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Pretendard Variable", sans-serif; }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px;
+        }
+
+        header {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: var(--main-color);
+            font-weight: 700;
+            background: var(--card-bg);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 2px solid var(--main-color);
+            font-size: 0.9rem;
+        }
+
+        .container {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 40px 30px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            border: 2px solid var(--main-color);
+        }
+
+        h1 { color: var(--main-color); margin-bottom: 10px; font-size: 1.6rem; }
+        p { color: var(--text-color); opacity: 0.8; font-size: 0.95rem; margin-bottom: 30px; }
+
+        .cookie-box {
+            font-size: 5rem;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: transform 0.2s ease;
+            user-select: none;
+        }
+
+        .cookie-box:hover { transform: scale(1.1) rotate(5deg); }
+        .cookie-box.cracked { animation: crack 0.5s ease forwards; }
+
+        @keyframes crack {
+            0% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.2) rotate(-10deg); }
+            100% { transform: scale(0.9) rotate(0deg); }
+        }
+
+        .result-card {
+            margin-top: 25px;
+            padding: 20px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            border: 1.5px dashed var(--main-color);
+            display: none;
+            font-weight: 600;
+            line-height: 1.6;
+        }
+
+        .btn {
+            margin-top: 25px;
+            background: var(--main-color);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="back-btn">⬅️ 다이어리로 돌아가기</a>
+    </header>
+
+    <div class="container">
+        <h1>🥠 포춘쿠키 뽑기</h1>
+        <p>쿠키를 터치해서 오늘의 한 줄 운세를 열어보세요!</p>
+
+        <div id="cookie" class="cookie-box" onclick="openCookie()">🥠</div>
+
+        <div id="result" class="result-card"></div>
+
+        <button class="btn" onclick="resetCookie()">다시 뽑기 🔄</button>
+    </div>
+
+    <script>
+        const fortunes = [
+            "✨ 오늘은 작은 행동이 큰 기쁨으로 돌아오는 날입니다!",
+            "☕ 따뜻한 음료 한 잔과 함께 잠깐의 여유를 가져보세요.",
+            "🌱 마음먹었던 일에 차근차근 도전하기 딱 좋은 날이에요.",
+            "🎁 뜻밖의 반가운 소식이나 선물이 찾아올 지도 몰라요!",
+            "💡 당신의 독창적인 아이디어가 좋은 결실을 맺을 것입니다.",
+            "🌈 조금 천천히 가도 괜찮아요. 이미 충분히 잘하고 있어요!"
+        ];
+
+        function openCookie() {
+            const cookie = document.getElementById('cookie');
+            const result = document.getElementById('result');
+
+            if (!cookie.classList.contains('cracked')) {
+                cookie.classList.add('cracked');
+                setTimeout(() => {
+                    cookie.innerText = "🥠💥";
+                    const randomFortune = fortunes[Math.floor(Math.random() * fortunes.length)];
+                    result.innerText = randomFortune;
+                    result.style.display = 'block';
+                }, 300);
+            }
+        }
+
+        function resetCookie() {
+            const cookie = document.getElementById('cookie');
+            const result = document.getElementById('result');
+
+            cookie.classList.remove('cracked');
+            cookie.innerText = "🥠";
+            result.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
