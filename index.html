@@ -61,6 +61,12 @@
             padding: 15px 20px;
         }
 
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .logo {
             font-size: 1.3rem;
             font-weight: 800;
@@ -88,6 +94,18 @@
         .drink-btn:hover {
             transform: translateY(-2px) scale(1.03);
             box-shadow: 0 5px 12px rgba(0,0,0,0.12);
+        }
+
+        /* 모바일 햄버거 버튼 (기본적으로 PC에서는 안 보임) */
+        .hamburger-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.6rem;
+            color: var(--main-color);
+            cursor: pointer;
+            padding: 4px 8px;
+            line-height: 1;
         }
 
         nav {
@@ -321,10 +339,32 @@
             }
         }
 
+        /* ---------------- 스마트폰 미디어 쿼리 (화면 폭 600px 이하) ---------------- */
         @media (max-width: 600px) {
-            .nav-container {
-                justify-content: flex-start;
+            .hamburger-btn {
+                display: block; /* 모바일에서 햄버거 버튼 출력 */
             }
+
+            nav {
+                display: none; /* 기본적으로 메뉴 숨김 */
+            }
+
+            nav.active {
+                display: block; /* 햄버거 버튼 클릭 시 메뉴 펼침 */
+            }
+
+            .nav-container {
+                flex-direction: column;
+                align-items: center;
+                padding: 15px 0;
+                gap: 10px;
+            }
+
+            .nav-container a {
+                width: 90%;
+                text-align: center;
+            }
+
             section {
                 padding: 20px;
             }
@@ -337,22 +377,26 @@
     <header>
         <div class="header-container">
             <div class="logo">승미의 다이어리</div>
-            <button class="drink-btn" onclick="changeDrinkTheme()">
-                <span id="drink-icon">🍵</span>
-                <span id="drink-name">말차라떼</span>
-            </button>
+            <div class="header-right">
+                <button class="drink-btn" onclick="changeDrinkTheme()">
+                    <span id="drink-icon">🍵</span>
+                    <span id="drink-name">말차라떼</span>
+                </button>
+                <!-- 햄버거 버튼 -->
+                <button class="hamburger-btn" onclick="toggleMenu()" aria-label="메뉴 열기">☰</button>
+            </div>
         </div>
     </header>
 
     <!-- 상단 메뉴바 -->
-    <nav>
+    <nav id="nav-menu">
         <div class="nav-container">
-            <a href="#home">🏚️ Home</a>
-            <a href="#profile">👤 Profile</a>
-            <a href="#projects">💻 Projects/Skills</a>
-            <a href="#growth">🌱 Growth</a>
-            <a href="#playlab">🎬 Play Lab</a>
-            <a href="#contact">✉️ Contact</a>
+            <a href="#home" onclick="closeMenu()">🏚️ Home</a>
+            <a href="#profile" onclick="closeMenu()">👤 Profile</a>
+            <a href="#projects" onclick="closeMenu()">💻 Projects/Skills</a>
+            <a href="#growth" onclick="closeMenu()">🌱 Growth</a>
+            <a href="#playlab" onclick="closeMenu()">🎬 Play Lab</a>
+            <a href="#contact" onclick="closeMenu()">✉️ Contact</a>
         </div>
     </nav>
 
@@ -453,6 +497,20 @@
 
     <!-- 스크립트 -->
     <script>
+        /* 햄버거 메뉴 토글 기능 */
+        function toggleMenu() {
+            const nav = document.getElementById('nav-menu');
+            nav.classList.toggle('active');
+        }
+
+        /* 모바일 메뉴 항목 클릭 시 자동으로 메뉴 닫기 */
+        function closeMenu() {
+            const nav = document.getElementById('nav-menu');
+            if (window.innerWidth <= 600) {
+                nav.classList.remove('active');
+            }
+        }
+
         /* 1. 음료별 고대비 테마 색상 정의 */
         const drinks = [
             { 
