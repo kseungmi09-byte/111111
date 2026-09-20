@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🍹 커스텀 음료 만들기 - 승미의 다이어리</title>
+    <title>🍹 위대한 커피 커스텀 메이커 - 승미의 다이어리</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root {
@@ -12,6 +12,7 @@
             --card-bg: #FFFFFF;
             --text-color: #1B4332;
             --grid-color: rgba(27, 67, 50, 0.08);
+            --transition-speed: 0.4s;
         }
 
         body.dark-mode {
@@ -43,7 +44,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .back-btn {
@@ -67,34 +68,338 @@
             border: 2px solid var(--main-color);
         }
 
-        h1 { color: var(--main-color); text-align: center; margin-bottom: 8px; font-size: 1.5rem; }
-        p.subtitle { text-align: center; color: var(--text-color); opacity: 0.8; font-size: 0.9rem; margin-bottom: 25px; }
+        h1 { color: var(--main-color); text-align: center; margin-bottom: 6px; font-size: 1.5rem; }
+        p.subtitle { text-align: center; color: var(--text-color); opacity: 0.8; font-size: 0.88rem; margin-bottom: 20px; }
 
-        .drink-preview {
+        /* ---------------- 카페 카운터 & 컵 그래픽 ---------------- */
+        .cafe-counter {
             background: var(--bg-color);
             border-radius: 16px;
-            padding: 25px;
+            padding: 35px 20px 20px;
             text-align: center;
             margin-bottom: 25px;
-            border: 1.5px dashed var(--main-color);
+            border: 2px dashed var(--main-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
         }
 
-        .drink-icon { font-size: 4rem; margin-bottom: 10px; display: block; }
-        .drink-title { font-size: 1.15rem; font-weight: 800; color: var(--main-color); }
-        .drink-recipe { font-size: 0.85rem; color: var(--text-color); opacity: 0.8; margin-top: 6px; }
+        /* 컵 비우기 버튼 */
+        .reset-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--card-bg);
+            border: 1.5px solid var(--main-color);
+            color: var(--main-color);
+            padding: 5px 12px;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
 
-        .option-group { margin-bottom: 18px; }
-        .option-title { font-size: 0.9rem; font-weight: 700; color: var(--main-color); margin-bottom: 8px; }
-        
+        .reset-btn:hover {
+            background: var(--main-color);
+            color: #ffffff;
+            transform: scale(1.05);
+        }
+
+        .cup-stage {
+            position: relative;
+            width: 130px;
+            height: 210px;
+            margin-bottom: 15px;
+        }
+
+        /* 빨대 */
+        .straw {
+            position: absolute;
+            top: -15px;
+            right: 42px;
+            width: 12px;
+            height: 190px;
+            background: #E63946;
+            border-radius: 6px;
+            transform: rotate(10deg);
+            z-index: 10;
+        }
+
+        .straw::after {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background: #FFF;
+            opacity: 0.6;
+        }
+
+        /* 유리 컵 외형 */
+        .cup-body {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 104px;
+            height: 150px;
+            border: 4px solid var(--main-color);
+            border-top: none;
+            border-radius: 0 0 24px 24px;
+            background: rgba(255, 255, 255, 0.15);
+            overflow: hidden;
+            z-index: 5;
+            backdrop-filter: blur(2px);
+            display: flex;
+            flex-direction: column-reverse;
+        }
+
+        .cup-rim {
+            position: absolute;
+            top: 55px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 112px;
+            height: 10px;
+            border: 3px solid var(--main-color);
+            border-radius: 10px;
+            background: var(--card-bg);
+            z-index: 8;
+        }
+
+        /* 음료 액체 레이어 */
+        .liquid-layer {
+            width: 100%;
+            transition: height var(--transition-speed) ease, background-color var(--transition-speed) ease;
+        }
+
+        #syrup-layer {
+            height: 0%;
+            background-color: #8D5B28;
+        }
+
+        #base-layer {
+            height: 50%;
+            background-color: #2D6A4F;
+        }
+
+        #milk-layer {
+            height: 35%;
+            background-color: #FFF8F0;
+        }
+
+        .ice-cubes {
+            position: absolute;
+            top: 65%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.3rem;
+            z-index: 6;
+            letter-spacing: 4px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .ice-cubes.active { opacity: 0.95; }
+
+        /* ---------------- 토핑 레이어 시스템 ---------------- */
+        .topping-container {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 110px;
+            height: 55px;
+            z-index: 7;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            pointer-events: none;
+        }
+
+        /* 1. CSS 휘핑크림 */
+        .whip-cream {
+            position: relative;
+            width: 90px;
+            height: 35px;
+            background: #FFF;
+            border-radius: 30px 30px 10px 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: none;
+            border: 2px solid rgba(0,0,0,0.05);
+        }
+
+        .whip-cream::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            width: 50px;
+            height: 25px;
+            background: #FFF;
+            border-radius: 20px;
+        }
+
+        .whip-cream::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 32px;
+            width: 25px;
+            height: 20px;
+            background: #FFF;
+            border-radius: 15px;
+        }
+
+        .whip-cream.active { display: block; animation: whipPop 0.3s ease-out; }
+
+        /* 2. 아이스크림 스쿱 */
+        .icecream-scoop {
+            position: relative;
+            width: 75px;
+            height: 45px;
+            background: #FFF9E6;
+            border-radius: 40px 40px 15px 15px;
+            box-shadow: inset -4px -4px 0 rgba(0,0,0,0.05), 0 4px 8px rgba(0,0,0,0.1);
+            display: none;
+            border: 2px solid rgba(0,0,0,0.08);
+        }
+
+        .icecream-scoop.active { display: block; animation: whipPop 0.3s ease-out; }
+
+        @keyframes whipPop {
+            0% { transform: scale(0.6); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 3. 그려진 초코 드리즐 그래픽 */
+        .decor-drizzle {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 28px;
+            z-index: 8;
+            display: none;
+        }
+
+        /* 초콜릿 흘러내림 선 & 방울들 */
+        .drizzle-line {
+            position: absolute;
+            background: #3E2723;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .drizzle-1 { width: 60px; height: 4px; top: 2px; left: 10px; transform: rotate(-8deg); }
+        .drizzle-2 { width: 50px; height: 4px; top: 12px; left: 15px; transform: rotate(10deg); }
+        .drizzle-drop1 { width: 5px; height: 12px; top: 4px; left: 22px; border-radius: 0 0 4px 4px; }
+        .drizzle-drop2 { width: 6px; height: 15px; top: 12px; right: 25px; border-radius: 0 0 5px 5px; }
+
+        .decor-drizzle.active { display: block; animation: whipPop 0.3s ease-out; }
+
+        /* 4. 입체 체리 그래픽 (기본 위치 vs 컵 측면 꽂힘) */
+        .decor-cherry {
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 22px;
+            height: 22px;
+            background: radial-gradient(circle at 30% 30%, #FF5252, #B71C1C);
+            border-radius: 50%;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.25);
+            z-index: 9;
+            display: none;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* 체리 줄기 */
+        .decor-cherry::after {
+            content: '';
+            position: absolute;
+            top: -12px;
+            right: 4px;
+            width: 12px;
+            height: 14px;
+            border-right: 3px solid #2E7D32;
+            border-top: 2px solid #2E7D32;
+            border-radius: 0 6px 0 0;
+        }
+
+        /* 체리가 컵 우측 테두리에 꽂혀있는 스타일 */
+        .decor-cherry.stem-mounted {
+            top: 36px;
+            left: auto;
+            right: -10px;
+            transform: rotate(20deg);
+            z-index: 9;
+        }
+
+        /* 체리가 컵 테두리에 꽂히는 홈(홈 파임 홈) 표현 */
+        .decor-cherry.stem-mounted::before {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 3px;
+            width: 5px;
+            height: 7px;
+            background: var(--card-bg);
+            border-radius: 2px;
+            border: 1px solid var(--main-color);
+        }
+
+        .decor-cherry.active { display: block; }
+
+        /* 5. 바삭한 쿠키 크런치 조각 그래픽 */
+        .decor-crunch {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 20px;
+            z-index: 8;
+            display: none;
+        }
+
+        .crunch-piece {
+            position: absolute;
+            background: #4E342E;
+            border-radius: 3px;
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .crunch-1 { width: 8px; height: 7px; top: 2px; left: 10px; transform: rotate(15deg); }
+        .crunch-2 { width: 10px; height: 6px; top: 6px; left: 26px; transform: rotate(-25deg); background: #3E2723; }
+        .crunch-3 { width: 7px; height: 8px; top: 3px; right: 12px; transform: rotate(40deg); }
+        .crunch-4 { width: 6px; height: 6px; top: 10px; right: 28px; transform: rotate(-10deg); background: #5D4037; }
+
+        .decor-crunch.active { display: block; animation: whipPop 0.3s ease-out; }
+
+        .drink-title { font-size: 1.2rem; font-weight: 800; color: var(--main-color); margin-top: 5px; }
+        .drink-recipe { font-size: 0.85rem; color: var(--text-color); opacity: 0.85; margin-top: 4px; }
+
+        /* ---------------- 재료 버튼 ---------------- */
+        .option-group { margin-bottom: 16px; }
+        .option-title { font-size: 0.88rem; font-weight: 700; color: var(--main-color); margin-bottom: 8px; }
         .option-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
         
         .opt-btn {
             background: var(--bg-color);
-            border: 1px solid var(--main-color);
+            border: 1.5px solid var(--main-color);
             color: var(--text-color);
             padding: 6px 12px;
             border-radius: 14px;
-            font-size: 0.85rem;
+            font-size: 0.83rem;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.2s;
@@ -103,90 +408,250 @@
         .opt-btn.active {
             background: var(--main-color);
             color: white;
+            transform: scale(1.03);
         }
     </style>
 </head>
 <body>
 
     <header>
-        <a href="index.html" class="back-btn">⬅️ 다이어리로 돌아가기</a>
+        <a href="index.html" class="back-btn">다이어리로 돌아가기</a>
     </header>
 
     <div class="container">
-        <h1>🍹 커스텀 음료 만들기</h1>
-        <p class="subtitle">옵션을 조합해 나만의 특별한 메뉴를 완성해 보세요!</p>
+        <h1>위대한 커피 음료 제조기</h1>
+        <p class="subtitle">재료를 누르면 컵 안에 차곡차곡 담겨요!</p>
 
-        <div class="drink-preview">
-            <span id="preview-icon" class="drink-icon">🍵</span>
+        <!-- 카운터 & 컵 그래픽 -->
+        <div class="cafe-counter">
+            <button class="reset-btn" onclick="clearCup()">컵 비우기</button>
+
+            <div class="cup-stage">
+                <div class="straw"></div>
+                <div class="cup-rim"></div>
+                
+                <!-- 토핑 레이어 스택 -->
+                <div class="topping-container">
+                    <div id="whip-cream" class="whip-cream"></div>
+                    <div id="icecream-scoop" class="icecream-scoop"></div>
+                    
+                    <!-- 그려진 초코 드리즐 -->
+                    <div id="decor-drizzle" class="decor-drizzle">
+                        <div class="drizzle-line drizzle-1"></div>
+                        <div class="drizzle-line drizzle-2"></div>
+                        <div class="drizzle-line drizzle-drop1"></div>
+                        <div class="drizzle-line drizzle-drop2"></div>
+                    </div>
+                    
+                    <div id="decor-cherry" class="decor-cherry"></div>
+                    
+                    <div id="decor-crunch" class="decor-crunch">
+                        <div class="crunch-piece crunch-1"></div>
+                        <div class="crunch-piece crunch-2"></div>
+                        <div class="crunch-piece crunch-3"></div>
+                        <div class="crunch-piece crunch-4"></div>
+                    </div>
+                </div>
+
+                <div id="ice-cubes" class="ice-cubes">🧊🧊</div>
+                
+                <div class="cup-body">
+                    <div id="syrup-layer" class="liquid-layer"></div>
+                    <div id="base-layer" class="liquid-layer"></div>
+                    <div id="milk-layer" class="liquid-layer"></div>
+                </div>
+            </div>
+
             <div id="preview-title" class="drink-title">말차 라떼</div>
-            <div id="preview-recipe" class="drink-recipe">베이스: 말차 | 우유: 일반 우유 | 시럽: 기본 | 토핑: 없음</div>
+            <div id="preview-recipe" class="drink-recipe">말차 50% + 우유 35%</div>
         </div>
 
+        <!-- 1. 시럽 선택 -->
         <div class="option-group">
-            <div class="option-title">1. 베이스 선택</div>
+            <div class="option-title">1. 시럽 추가 (바닥 레이어)</div>
+            <div class="option-buttons" id="syrup-group">
+                <button class="opt-btn active" onclick="selectOpt('syrup', '시럽 없음', 'transparent', 0)">없음</button>
+                <button class="opt-btn" onclick="selectOpt('syrup', '바닐라 시럽', '#D7A15C', 15)">바닐라 시럽</button>
+                <button class="opt-btn" onclick="selectOpt('syrup', '초코 시럽', '#3E2723', 18)">초코 시럽</button>
+                <button class="opt-btn" onclick="selectOpt('syrup', '딸기 퓨레', '#C2185B', 20)">딸기 퓨레</button>
+            </div>
+        </div>
+
+        <!-- 2. 메인 베이스 선택 -->
+        <div class="option-group">
+            <div class="option-title">2. 메인 음료 베이스</div>
             <div class="option-buttons" id="base-group">
-                <button class="opt-btn active" onclick="selectOpt('base', '말차', '🍵')">말차 🍵</button>
-                <button class="opt-btn" onclick="selectOpt('base', '에스프레소', '☕')">에스프레소 ☕</button>
-                <button class="opt-btn" onclick="selectOpt('base', '딸기', '🍓')">딸기 🍓</button>
-                <button class="opt-btn" onclick="selectOpt('base', '초콜릿', '🍫')">초콜릿 🍫</button>
+                <button class="opt-btn active" onclick="selectOpt('base', '말차', '#2D6A4F')">말차 베이스</button>
+                <button class="opt-btn" onclick="selectOpt('base', '에스프레소 샷', '#4A2E2B')">에스프레소 샷</button>
+                <button class="opt-btn" onclick="selectOpt('base', '홍차(밀크티)', '#B06D3B')">홍차 베이스</button>
+                <button class="opt-btn" onclick="selectOpt('base', '블루베리', '#4A148C')">블루베리 베이스</button>
+                <button class="opt-btn" onclick="selectOpt('base', '빈 컵', 'transparent')">선택 안함</button>
             </div>
         </div>
 
+        <!-- 3. 우유/얼음 선택 -->
         <div class="option-group">
-            <div class="option-title">2. 우유 선택</div>
+            <div class="option-title">3. 우유 & 얼음 옵션</div>
             <div class="option-buttons" id="milk-group">
-                <button class="opt-btn active" onclick="selectOpt('milk', '일반 우유')">일반 우유 🥛</button>
-                <button class="opt-btn" onclick="selectOpt('milk', '두유')">두유 🌾</button>
-                <button class="opt-btn" onclick="selectOpt('milk', '아몬드유')">아몬드유 🥜</button>
+                <button class="opt-btn active" onclick="selectOpt('milk', '일반 우유', '#FFF8F0', 35, true)">우유 + 얼음</button>
+                <button class="opt-btn" onclick="selectOpt('milk', '두유', '#EFEBE9', 35, true)">두유 + 얼음</button>
+                <button class="opt-btn" onclick="selectOpt('milk', '우유만(얼음X)', '#FFF8F0', 40, false)">우유만</button>
+                <button class="opt-btn" onclick="selectOpt('milk', '우유 없음', 'transparent', 0, false)">우유 없음</button>
             </div>
         </div>
 
+        <!-- 4. 풍성한 상단 토핑 선택 -->
         <div class="option-group">
-            <div class="option-title">3. 토핑 추가</div>
+            <div class="option-title">4. 상단 고급 토핑</div>
             <div class="option-buttons" id="topping-group">
                 <button class="opt-btn active" onclick="selectOpt('topping', '없음')">없음</button>
-                <button class="opt-btn" onclick="selectOpt('topping', '휘핑크림')">휘핑크림 🍦</button>
-                <button class="opt-btn" onclick="selectOpt('topping', '아이스크림')">아이스크림 🍨</button>
-                <button class="opt-btn" onclick="selectOpt('topping', '초코칩')">초코칩 🍪</button>
+                <button class="opt-btn" onclick="selectOpt('topping', '휘핑크림+초코드리즐')">휘핑크림 + 초코드리즐</button>
+                <button class="opt-btn" onclick="selectOpt('topping', '바닐라 아이스크림+체리')">바닐라 아이스크림 + 체리</button>
+                <button class="opt-btn" onclick="selectOpt('topping', '휘핑크림+쿠키크런치')">휘핑크림 + 쿠키크런치</button>
+                <button class="opt-btn" onclick="selectOpt('topping', '체리 퐁당')">체리 퐁당</button>
             </div>
         </div>
     </div>
 
     <script>
         let recipe = {
+            syrup: '시럽 없음',
+            syrupColor: 'transparent',
+            syrupHeight: 0,
+
             base: '말차',
-            icon: '🍵',
+            baseColor: '#2D6A4F',
+
             milk: '일반 우유',
+            milkColor: '#FFF8F0',
+            milkHeight: 35,
+            hasIce: true,
+
             topping: '없음'
         };
 
-        function selectOpt(type, val, icon = null) {
-            recipe[type] = val;
-            if(icon) recipe.icon = icon;
+        function selectOpt(type, name, val, extraHeight = 0, extraFlag = false) {
+            if (type === 'syrup') {
+                recipe.syrup = name;
+                recipe.syrupColor = val;
+                recipe.syrupHeight = extraHeight;
+            } else if (type === 'base') {
+                recipe.base = name;
+                recipe.baseColor = val;
+            } else if (type === 'milk') {
+                recipe.milk = name;
+                recipe.milkColor = val;
+                recipe.milkHeight = extraHeight;
+                recipe.hasIce = extraFlag;
+            } else if (type === 'topping') {
+                recipe.topping = name;
+            }
 
-            // 버튼 active 상태 변경
+            updateButtonUI(type, name);
+            updateStage();
+        }
+
+        function updateButtonUI(type, name) {
             const group = document.getElementById(`${type}-group`);
             const btns = group.querySelectorAll('.opt-btn');
             btns.forEach(btn => {
-                if(btn.innerText.includes(val)) btn.classList.add('active');
+                if (btn.innerText.trim() === name.trim()) btn.classList.add('active');
                 else btn.classList.remove('active');
             });
-
-            updatePreview();
         }
 
-        function updatePreview() {
-            document.getElementById('preview-icon').innerText = recipe.icon;
-            
-            let title = `${recipe.base} 라떼`;
-            if (recipe.topping !== '없음') {
-                title = `${recipe.topping} ${title}`;
+        function clearCup() {
+            recipe = {
+                syrup: '시럽 없음',
+                syrupColor: 'transparent',
+                syrupHeight: 0,
+
+                base: '빈 컵',
+                baseColor: 'transparent',
+
+                milk: '우유 없음',
+                milkColor: 'transparent',
+                milkHeight: 0,
+                hasIce: false,
+
+                topping: '없음'
+            };
+
+            updateButtonUI('syrup', '시럽 없음');
+            updateButtonUI('base', '빈 컵');
+            updateButtonUI('milk', '우유 없음');
+            updateButtonUI('topping', '없음');
+
+            updateStage();
+        }
+
+        function updateStage() {
+            const syrupLayer = document.getElementById('syrup-layer');
+            const baseLayer = document.getElementById('base-layer');
+            const milkLayer = document.getElementById('milk-layer');
+            const iceCubes = document.getElementById('ice-cubes');
+
+            const whipCream = document.getElementById('whip-cream');
+            const icecreamScoop = document.getElementById('icecream-scoop');
+            const decorDrizzle = document.getElementById('decor-drizzle');
+            const decorCherry = document.getElementById('decor-cherry');
+            const decorCrunch = document.getElementById('decor-crunch');
+
+            // 초기 상태 리셋
+            whipCream.classList.remove('active');
+            icecreamScoop.classList.remove('active');
+            decorDrizzle.classList.remove('active');
+            decorCherry.classList.remove('active');
+            decorCherry.classList.remove('stem-mounted');
+            decorCrunch.classList.remove('active');
+
+            syrupLayer.style.backgroundColor = recipe.syrupColor;
+            syrupLayer.style.height = `${recipe.syrupHeight}%`;
+
+            milkLayer.style.backgroundColor = recipe.milkColor;
+            milkLayer.style.height = `${recipe.milkHeight}%`;
+
+            const remainingBaseHeight = (recipe.base === '빈 컵') ? 0 : (90 - recipe.syrupHeight - recipe.milkHeight);
+            baseLayer.style.backgroundColor = recipe.baseColor;
+            baseLayer.style.height = `${Math.max(remainingBaseHeight, 0)}%`;
+
+            if (recipe.hasIce) {
+                iceCubes.classList.add('active');
+            } else {
+                iceCubes.classList.remove('active');
             }
-            
-            document.getElementById('preview-title').innerText = title;
-            document.getElementById('preview-recipe').innerText = 
-                `베이스: ${recipe.base} | 우유: ${recipe.milk} | 토핑: ${recipe.topping}`;
+
+            // 토핑 그래픽 스위칭
+            if (recipe.topping === '휘핑크림+초코드리즐') {
+                whipCream.classList.add('active');
+                decorDrizzle.classList.add('active');
+            } else if (recipe.topping === '바닐라 아이스크림+체리') {
+                icecreamScoop.classList.add('active');
+                decorCherry.classList.add('active');
+            } else if (recipe.topping === '휘핑크림+쿠키크런치') {
+                whipCream.classList.add('active');
+                decorCrunch.classList.add('active');
+            } else if (recipe.topping === '체리 퐁당') {
+                // 체리만 단독으로 올렸을 때 컵 테두리에 꽂히는 연출
+                decorCherry.classList.add('active');
+                decorCherry.classList.add('stem-mounted');
+            }
+
+            if (recipe.base === '빈 컵' && recipe.syrup === '시럽 없음' && recipe.milk === '우유 없음' && recipe.topping === '없음') {
+                document.getElementById('preview-title').innerText = "빈 컵";
+                document.getElementById('preview-recipe').innerText = "재료를 선택해 나만의 음료를 채워보세요!";
+            } else {
+                let title = (recipe.base !== '빈 컵') ? `${recipe.base} 음료` : '커스텀 음료';
+                if (recipe.topping !== '없음') {
+                    title = `${recipe.topping} ${title}`;
+                }
+                document.getElementById('preview-title').innerText = title;
+                document.getElementById('preview-recipe').innerText = 
+                    `${recipe.syrup !== '시럽 없음' ? recipe.syrup + ' + ' : ''}${recipe.base !== '빈 컵' ? recipe.base + ' + ' : ''}${recipe.milk}`;
+            }
         }
+
+        updateStage();
     </script>
 </body>
 </html>
