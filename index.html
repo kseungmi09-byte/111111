@@ -1,115 +1,967 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>목차 화면 전환 예제</title>
-  <style>
-    /* 전체 레이아웃 (좌측: 목차, 우측: 내용) */
-    body {
-      display: flex;
-      font-family: Arial, sans-serif;
-      margin: 0;
-      height: 100vh;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>승미의 다이어리</title>
+    <!-- 본문 폰트 및 Play Lab 손글씨 폰트(온글잎 안성은) -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2402-1@1.0/OWngleLeafAnSeongEun.woff2">
+    
+    <style>
+        @font-face {
+            font-family: 'OWngleLeafAnSeongEun';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2402-1@1.0/OWngleLeafAnSeongEun.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
 
-    /* 목차 메뉴 스타일 */
-    nav {
-      width: 200px;
-      background-color: #f4f4f4;
-      border-right: 1px solid #ccc;
-      padding: 20px;
-    }
+        :root {
+            /* 라이트모드 기본 (말차라떼) */
+            --main-color: #2D6A4F;
+            --bg-color: #E8F5E9;
+            --card-bg: #FFFFFF;
+            --text-color: #1B4332;
+            --sub-text: #40916C;
+            --bubble-color1: rgba(45, 106, 79, 0.25);
+            --bubble-color2: rgba(82, 183, 136, 0.20);
+            --bubble-color3: rgba(183, 228, 199, 0.35);
+            --grid-color: rgba(27, 67, 50, 0.08);
+            --particle-color: rgba(45, 106, 79, 0.6);
+            --sticker-opacity: 0.85;
+            --element-filter: none;
+            --transition-speed: 0.35s;
+        }
 
-    nav ul {
-      list-style-type: none;
-      padding: 0;
-    }
+        /* 다크모드 (요소 및 이모티콘 톤다운) */
+        body.dark-mode {
+            --bg-color: #121614;
+            --card-bg: #1E2622;
+            --text-color: #F0F5F2;
+            --sub-text: #9EBBAF;
+            --grid-color: rgba(255, 255, 255, 0.08);
+            --bubble-color1: rgba(45, 106, 79, 0.18);
+            --bubble-color2: rgba(82, 183, 136, 0.12);
+            --bubble-color3: rgba(183, 228, 199, 0.15);
+            --particle-color: rgba(183, 228, 199, 0.5);
+            --sticker-opacity: 0.6;
+            --element-filter: brightness(0.65) contrast(1.1) grayscale(0.2);
+        }
 
-    nav li {
-      padding: 12px 15px;
-      margin-bottom: 8px;
-      cursor: pointer;
-      background-color: #ffffff;
-      border-radius: 4px;
-      border: 1px solid #ddd;
-      transition: background 0.2s;
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+        }
 
-    nav li:hover {
-      background-color: #e2e2e2;
-    }
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: var(--text-color);
+            line-height: 1.7;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+            overflow-x: hidden;
+            padding-bottom: 60px;
+            position: relative;
+            min-height: 100vh;
+        }
 
-    /* 선택된 목차 메뉴 강조 */
-    nav li.active {
-      background-color: #007bff;
-      color: white;
-      font-weight: bold;
-    }
+        /* ---------------- Ambient Background Floating Bubbles ---------------- */
+        .bg-bubble-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
 
-    /* 화면 내용 영역 */
-    main {
-      flex: 1;
-      padding: 40px;
-    }
+        .bg-bubble {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(50px);
+            animation: floatSlow 18s infinite ease-in-out alternate;
+            transition: background-color var(--transition-speed);
+        }
 
-    /* 기본적으로 화면들은 숨김 처리 */
-    .tab-content {
-      display: none;
-    }
+        .bg-bubble-1 {
+            width: 420px;
+            height: 420px;
+            background-color: var(--bubble-color1);
+            top: -60px;
+            left: -80px;
+            animation-duration: 16s;
+        }
 
-    /* active 클래스가 붙은 화면만 보임 */
-    .tab-content.active {
-      display: block;
-    }
-  </style>
+        .bg-bubble-2 {
+            width: 360px;
+            height: 360px;
+            background-color: var(--bubble-color2);
+            bottom: 5%;
+            right: -60px;
+            animation-duration: 22s;
+            animation-delay: -5s;
+        }
+
+        .bg-bubble-3 {
+            width: 300px;
+            height: 300px;
+            background-color: var(--bubble-color3);
+            top: 40%;
+            left: 15%;
+            animation-duration: 19s;
+            animation-delay: -10s;
+        }
+
+        @keyframes floatSlow {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(70px, 50px) scale(1.15); }
+            100% { transform: translate(-40px, 90px) scale(0.9); }
+        }
+
+        /* ---------------- Sticker & Emoji Background Accents ---------------- */
+        .sticker-decor {
+            position: absolute;
+            pointer-events: none;
+            z-index: 10;
+            opacity: var(--sticker-opacity);
+            filter: var(--element-filter);
+            user-select: none;
+            transition: transform 0.3s ease, opacity var(--transition-speed), filter var(--transition-speed);
+        }
+
+        .sticker-top-left {
+            top: 15px;
+            left: 20px;
+            font-size: 1.8rem;
+            transform: rotate(-15deg);
+        }
+
+        .sticker-top-right {
+            top: 20px;
+            right: 25px;
+            font-size: 1.6rem;
+            transform: rotate(12deg);
+        }
+
+        .dark-mode .emoji-icon, 
+        .dark-mode .planning-badge,
+        .dark-mode .lab-card h3 {
+            filter: var(--element-filter);
+            transition: filter var(--transition-speed);
+        }
+
+        /* ---------------- Login Modal ---------------- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-box {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            width: 90%;
+            max-width: 360px;
+            border: 2px solid var(--main-color);
+        }
+
+        .modal-box h2 {
+            color: var(--main-color);
+            margin-bottom: 10px;
+            font-size: 1.4rem;
+        }
+
+        .modal-box p {
+            font-size: 0.9rem;
+            color: var(--sub-text);
+            margin-bottom: 20px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            outline: none;
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .modal-input:focus {
+            border-color: var(--main-color);
+        }
+
+        .modal-btn {
+            width: 100%;
+            background-color: var(--main-color);
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .modal-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* ---------------- Header & Nav ---------------- */
+        header {
+            position: sticky;
+            top: 0;
+            background-color: var(--card-bg);
+            border-bottom: 2px solid var(--main-color);
+            z-index: 1000;
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+        }
+
+        .header-container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .user-tag {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--main-color);
+            background: var(--bg-color);
+            padding: 4px 8px;
+            border-radius: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--main-color);
+            transition: color var(--transition-speed);
+            white-space: nowrap;
+        }
+
+        .icon-btn {
+            background: var(--bg-color);
+            border: 1.5px solid var(--main-color);
+            color: var(--text-color);
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all var(--transition-speed) ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            white-space: nowrap;
+        }
+
+        .icon-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+        }
+
+        .hamburger-btn {
+            display: block;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--main-color);
+            cursor: pointer;
+            padding: 2px 6px;
+            line-height: 1;
+        }
+
+        nav {
+            display: none; 
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background-color: var(--card-bg);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            z-index: 999;
+            border-bottom: 2px solid var(--main-color);
+        }
+
+        nav.active {
+            display: block;
+        }
+
+        .nav-container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px 0;
+            gap: 10px;
+        }
+
+        .nav-container a {
+            text-decoration: none;
+            color: var(--text-color);
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 8px 0;
+            width: 85%;
+            text-align: center;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-container a:hover {
+            color: var(--main-color);
+            background-color: var(--bg-color);
+        }
+
+        .nav-divider {
+            width: 80%;
+            height: 1px;
+            background-color: var(--grid-color);
+            margin: 4px 0;
+        }
+
+        /* ---------------- Main Layout ---------------- */
+        main {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 25px auto 0;
+            padding: 0 16px;
+        }
+
+        section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+            transition: background-color var(--transition-speed);
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--main-color);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid var(--main-color);
+            padding-bottom: 8px;
+            transition: color var(--transition-speed), border-color var(--transition-speed);
+        }
+
+        /* ---------------- Home Section ---------------- */
+        #home {
+            text-align: center;
+            padding: 35px 20px;
+            position: relative;
+        }
+
+        .greeting-header {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--main-color);
+            margin-bottom: 10px;
+        }
+
+        #home p {
+            color: var(--sub-text);
+            font-size: 0.95rem;
+            transition: color var(--transition-speed);
+        }
+
+        /* ---------------- 미니 창 ---------------- */
+        .diary-mini-card {
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.04);
+            text-align: center;
+            border: 2px solid var(--main-color);
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+        }
+
+        .diary-mini-card span {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--main-color);
+        }
+
+        /* ---------------- Profile Section ---------------- */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .profile-item {
+            background-color: var(--bg-color);
+            padding: 14px;
+            border-radius: 10px;
+            transition: background-color var(--transition-speed);
+        }
+
+        .profile-item strong {
+            color: var(--main-color);
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.88rem;
+            transition: color var(--transition-speed);
+        }
+
+        /* ---------------- Play Lab Section ---------------- */
+        .planning-badge {
+            font-family: 'OWngleLeafAnSeongEun', cursive;
+            font-size: 1.7rem;
+            color: var(--main-color);
+            display: inline-block;
+            background-color: var(--bg-color);
+            padding: 6px 18px;
+            border-radius: 30px;
+            margin-bottom: 18px;
+            animation: bounce 2s infinite ease-in-out;
+            transition: color var(--transition-speed), background-color var(--transition-speed);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .lab-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .lab-card {
+            border: 2px dashed var(--main-color);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            background-color: var(--bg-color);
+            transition: border-color var(--transition-speed), background-color var(--transition-speed);
+        }
+
+        .lab-card h3 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: var(--main-color);
+            transition: color var(--transition-speed);
+        }
+
+        .lab-card p {
+            font-size: 0.85rem;
+            color: var(--sub-text);
+            margin-bottom: 12px;
+            transition: color var(--transition-speed);
+        }
+
+        .lab-btn {
+            background-color: var(--main-color);
+            color: #ffffff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 18px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            transition: opacity 0.2s, background-color var(--transition-speed);
+            margin: 2px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .lab-btn:hover {
+            opacity: 0.85;
+        }
+
+        .guestbook-input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.82rem;
+            outline: none;
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .guestbook-list {
+            margin-top: 10px;
+            text-align: left;
+            max-height: 120px;
+            overflow-y: auto;
+            font-size: 0.82rem;
+        }
+
+        .guestbook-item {
+            background: var(--card-bg);
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: background-color var(--transition-speed);
+        }
+
+        /* ---------------- Contact Section ---------------- */
+        .contact-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--main-color);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: opacity 0.2s ease, background-color var(--transition-speed);
+        }
+
+        .contact-btn:hover {
+            opacity: 0.85;
+        }
+
+        /* ---------------- 원형 버블 파티클 ---------------- */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            border-radius: 50%;
+            background-color: var(--particle-color);
+            animation: float-particle 0.8s ease-out forwards;
+            z-index: 9999;
+        }
+
+        @keyframes float-particle {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .header-container {
+                padding: 10px 14px;
+            }
+            .logo {
+                font-size: 1.1rem;
+            }
+            .user-tag {
+                max-width: 90px;
+                font-size: 0.75rem;
+            }
+            .icon-btn {
+                padding: 5px 9px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
 </head>
 <body>
 
-  <!-- 1. 목차 메뉴 -->
-  <nav>
-    <h3>목차</h3>
-    <ul>
-      <li class="menu-item active" onclick="changeTab('tab1', this)">1. 소개</li>
-      <li class="menu-item" onclick="changeTab('tab2', this)">2. 기능</li>
-      <li class="menu-item" onclick="changeTab('tab3', this)">3. 문의하기</li>
-    </ul>
-  </nav>
-
-  <!-- 2. 화면 내용 영역 -->
-  <main>
-    <div id="tab1" class="tab-content active">
-      <h2>1. 소개 화면</h2>
-      <p>첫 번째 목차를 클릭했을 때 보이는 내용입니다.</p>
+    <!-- 배경 버블 3개 -->
+    <div class="bg-bubble-container">
+        <div class="bg-bubble bg-bubble-1"></div>
+        <div class="bg-bubble bg-bubble-2"></div>
+        <div class="bg-bubble bg-bubble-3"></div>
     </div>
 
-    <div id="tab2" class="tab-content">
-      <h2>2. 기능 화면</h2>
-      <p>두 번째 목차를 클릭했을 때 보이는 내용입니다.</p>
+    <!-- 로그인 모달 -->
+    <div id="login-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h2>☕ 다이어리 방문</h2>
+            <p>닉네임(아이디)을 입력해 주세요</p>
+            <input type="text" id="user-id-input" class="modal-input" placeholder="닉네임 입력..." onkeyup="if(window.event.keyCode==13){handleLogin()}">
+            <button class="modal-btn" onclick="handleLogin()">입장하기</button>
+        </div>
     </div>
 
-    <div id="tab3" class="tab-content">
-      <h2>3. 문의하기 화면</h2>
-      <p>세 번째 목차를 클릭했을 때 보이는 내용입니다.</p>
-    </div>
-  </main>
+    <!-- 헤더 영역 -->
+    <header>
+        <div class="header-container">
+            <div class="header-left">
+                <div class="logo">승미의 다이어리</div>
+                <span id="user-tag" class="user-tag" style="display: none;"></span>
+            </div>
+            
+            <div class="header-right">
+                <button class="icon-btn" onclick="toggleDarkMode()">
+                    <span id="mode-icon" class="emoji-icon">☀️</span>
+                </button>
 
-  <!-- 3. 화면 전환 자바스크립트 -->
-  <script>
-    function changeTab(tabId, element) {
-      // 모든 화면 숨기기
-      const contents = document.querySelectorAll('.tab-content');
-      contents.forEach(content => content.classList.remove('active'));
+                <button class="icon-btn" onclick="changeDrinkTheme()">
+                    <span id="drink-icon" class="emoji-icon">🍵</span>
+                    <span id="drink-name">말차라떼</span>
+                </button>
 
-      // 모든 메뉴의 활성화(색상) 표시 제거
-      const menuItems = document.querySelectorAll('.menu-item');
-      menuItems.forEach(item => item.classList.remove('active'));
+                <button class="hamburger-btn" onclick="toggleMenu()" aria-label="메뉴 열기">☰</button>
+            </div>
+        </div>
 
-      // 선택한 화면 보이기 & 선택한 메뉴 강조
-      document.getElementById(tabId).classList.add('active');
-      element.classList.add('active');
-    }
-  </script>
+        <!-- 상단 햄버거 메뉴바 -->
+        <nav id="nav-menu">
+            <div class="nav-container">
+                <a href="#home" onclick="closeMenu()">Panic Home</a>
+                <a href="#profile" onclick="closeMenu()">👤 Profile</a>
+                <a href="#projects" onclick="closeMenu()">💻 Projects/Skills</a>
+                <a href="#growth" onclick="closeMenu()">🌱 Growth</a>
+                <a href="#playlab" onclick="closeMenu()">🎬 Play Lab</a>
+                <a href="#contact" onclick="closeMenu()">✉️ Contact</a>
+                
+                <div class="nav-divider"></div>
+                <!-- 링크 추가: 포춘쿠키 & 커스텀 음료 -->
+                <a href="fortune.html">🥠 포춘쿠키 뽑기</a>
+                <a href="custom_drink.html">🍹 커스텀 음료 만들기</a>
+            </div>
+        </nav>
+    </header>
 
+    <!-- 본문 내용 -->
+    <main>
+        <section id="home">
+            <span id="sticker-left" class="sticker-decor sticker-top-left">🌿</span>
+            <span id="sticker-right" class="sticker-decor sticker-top-right">✨</span>
+
+            <h1 id="user-greeting-title" class="greeting-header">안녕하세요! 👋</h1>
+            <p>미니멀하고 편안한 일상과 기록을 남기는 다이어리입니다.</p>
+        </section>
+
+        <div class="diary-mini-card">
+            <span>📖 승미의 다이어리</span>
+        </div>
+
+        <section id="profile">
+            <h2 class="section-title">👤 Profile</h2>
+            <div class="profile-grid">
+                <div class="profile-item">
+                    <strong>이름</strong>
+                    김승미
+                </div>
+                <div class="profile-item">
+                    <strong>취미</strong>
+                    카페 탐방, 게임, 음악 감상, 새로운 지식 탐구
+                </div>
+                <div class="profile-item">
+                    <strong>관심 분야</strong>
+                    게임, 인공지능, 정보보안
+                </div>
+                <div class="profile-item">
+                    <strong>장점</strong>
+                    호기심이 많고 의견 표현을 잘한다
+                </div>
+            </div>
+        </section>
+
+        <section id="projects">
+            <h2 class="section-title">💻 Projects / Skills</h2>
+            <p>
+                프로그래밍 동아리 활동을 하며 블록 코딩을 활용한 미니게임을 제작하고, 아두이노를 활용한 미로 게임을 만들어보았습니다. 
+                학교 축제에서는 동아리 부원들과 함께 마인크래프트 미니게임을 기획하고 제작해 직접 운영해보았으며 여러 코딩 활동을 통해 프로그램을 직접 만들어보는 경험을 쌓았습니다. 
+                또한 개인적인 학습을 통해 파이썬과 유니티 물리엔진을 기초적으로 다룰 수 있습니다.
+            </p>
+        </section>
+
+        <section id="growth">
+            <h2 class="section-title">🌱 Growth</h2>
+            <p>
+                초등학교 때 방과후 활동으로 스크래치를 처음 접하면서 프로그래밍에 관심을 가지게 되었습니다. 
+                이후 중학교와 고등학교에서 엔트리를 배우고 아두이노나 여러 코딩 활동을 해보면서 직접 프로그램을 만들어보는 게 재미있다는 생각이 들었고 
+                그 뒤로 파이썬이나 블록체인 같은 컴퓨터 관련 내용도 찾아보면서 컴퓨터에 대해 하나씩 알아가는 것에 흥미를 느꼈고 
+                여러 분야를 접해보면서 자연스럽게 컴퓨터공학에 관심을 가지게 되었습니다.
+            </p>
+        </section>
+
+        <section id="playlab" style="text-align: center;">
+            <h2 class="section-title">🎬 Play Lab</h2>
+            
+            <div class="planning-badge">✨ 재미있는 기능 체험하기 ✨</div>
+
+            <div class="lab-grid">
+                <div class="lab-card">
+                    <h3><span class="emoji-icon">🥠</span> 포춘쿠키 뽑기</h3>
+                    <p>오늘의 운세와 따뜻한 한 줄 응원 메시지를 확인해 보세요!</p>
+                    <a href="fortune.html" class="lab-btn">뽑으러 가기 ▶</a>
+                </div>
+
+                <div class="lab-card">
+                    <h3><span class="emoji-icon">🍹</span> 커스텀 음료 만들기</h3>
+                    <p>나만의 취향대로 시럽과 토핑을 올려 특별한 음료를 완성해보세요!</p>
+                    <a href="custom_drink.html" class="lab-btn">만들러 가기 ▶</a>
+                </div>
+
+                <div class="lab-card">
+                    <h3><span class="emoji-icon">🎧</span> BGM</h3>
+                    <p id="song-text">☕ Bossa Nova Lounge</p>
+                    <audio id="bgm-player" loop></audio>
+                    <button class="lab-btn" id="bgm-btn" onclick="toggleBgm()">음악 재생 ▶️</button>
+                    <button class="lab-btn" onclick="changeTrack()">다음 곡 ⏭️</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact">
+            <h2 class="section-title">✉️ Contact</h2>
+            <p style="margin-bottom: 15px;">인스타그램을 통해 연락 및 소통하실 수 있습니다.</p>
+            <a href="https://instagram.com" target="_blank" class="contact-btn">
+                <span class="emoji-icon">📷</span> Instagram 바로가기
+            </a>
+        </section>
+    </main>
+
+    <script>
+        let currentUserId = "";
+
+        function handleLogin() {
+            const input = document.getElementById('user-id-input');
+            const userId = input.value.trim();
+
+            if (!userId) {
+                alert("아이디(닉네임)를 입력해주세요!");
+                return;
+            }
+
+            currentUserId = userId;
+
+            document.getElementById('login-modal').style.display = 'none';
+
+            const userTag = document.getElementById('user-tag');
+            userTag.innerText = `👤 ${currentUserId}`;
+            userTag.style.display = 'inline-block';
+
+            document.getElementById('user-greeting-title').innerText = `${currentUserId}님 안녕하세요! 👋`;
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const modeIcon = document.getElementById('mode-icon');
+            if (document.body.classList.contains('dark-mode')) {
+                modeIcon.innerText = "🌙";
+            } else {
+                modeIcon.innerText = "☀️";
+            }
+        }
+
+        function toggleMenu() {
+            const nav = document.getElementById('nav-menu');
+            nav.classList.toggle('active');
+        }
+
+        function closeMenu() {
+            const nav = document.getElementById('nav-menu');
+            nav.classList.remove('active');
+        }
+
+        const drinks = [
+            { 
+                name: "말차라떼", 
+                icon: "🍵", 
+                main: "#2D6A4F", 
+                bg: "#E8F5E9", 
+                cardBg: "#FFFFFF", 
+                text: "#1B4332", 
+                subText: "#40916C",
+                b1: "rgba(45, 106, 79, 0.25)",
+                b2: "rgba(82, 183, 136, 0.20)",
+                b3: "rgba(183, 228, 199, 0.35)",
+                grid: "rgba(27, 67, 50, 0.08)",
+                particle: "rgba(45, 106, 79, 0.6)",
+                stickerL: "🌿",
+                stickerR: "✨"
+            },
+            { 
+                name: "아메리카노", 
+                icon: "☕", 
+                main: "#4A2E2B", 
+                bg: "#F2EBE4", 
+                cardBg: "#FFFAF5", 
+                text: "#2B1A17", 
+                subText: "#6E4D47",
+                b1: "rgba(74, 46, 43, 0.25)",
+                b2: "rgba(141, 91, 40, 0.20)",
+                b3: "rgba(215, 180, 150, 0.35)",
+                grid: "rgba(43, 26, 23, 0.08)",
+                particle: "rgba(74, 46, 43, 0.6)",
+                stickerL: "☕",
+                stickerR: "🍂"
+            },
+            { 
+                name: "카페라떼", 
+                icon: "🥛", 
+                main: "#A66E38", 
+                bg: "#FFF8F0", 
+                cardBg: "#FFFFFF", 
+                text: "#3E2723", 
+                subText: "#8D5B28",
+                b1: "rgba(166, 110, 56, 0.25)",
+                b2: "rgba(230, 185, 128, 0.25)",
+                b3: "rgba(255, 225, 180, 0.40)",
+                grid: "rgba(62, 39, 35, 0.08)",
+                particle: "rgba(166, 110, 56, 0.6)",
+                stickerL: "🥛",
+                stickerR: "🧁"
+            },
+            { 
+                name: "딸기라떼", 
+                icon: "🍓", 
+                main: "#D81B60", 
+                bg: "#FCE4EC", 
+                cardBg: "#FFFFFF", 
+                text: "#880E4F", 
+                subText: "#AD1457",
+                b1: "rgba(216, 27, 96, 0.25)",
+                b2: "rgba(240, 128, 170, 0.25)",
+                b3: "rgba(255, 205, 220, 0.40)",
+                grid: "rgba(136, 14, 79, 0.08)",
+                particle: "rgba(216, 27, 96, 0.6)",
+                stickerL: "🍓",
+                stickerR: "🍰"
+            }
+        ];
+
+        let currentDrinkIndex = 0;
+
+        function changeDrinkTheme() {
+            currentDrinkIndex = (currentDrinkIndex + 1) % drinks.length;
+            const currentDrink = drinks[currentDrinkIndex];
+
+            if (!document.body.classList.contains('dark-mode')) {
+                document.documentElement.style.setProperty('--bg-color', currentDrink.bg);
+                document.documentElement.style.setProperty('--card-bg', currentDrink.cardBg);
+                document.documentElement.style.setProperty('--text-color', currentDrink.text);
+                document.documentElement.style.setProperty('--sub-text', currentDrink.subText);
+                document.documentElement.style.setProperty('--grid-color', currentDrink.grid);
+                document.documentElement.style.setProperty('--particle-color', currentDrink.particle);
+            }
+
+            document.documentElement.style.setProperty('--main-color', currentDrink.main);
+            document.documentElement.style.setProperty('--bubble-color1', currentDrink.b1);
+            document.documentElement.style.setProperty('--bubble-color2', currentDrink.b2);
+            document.documentElement.style.setProperty('--bubble-color3', currentDrink.b3);
+
+            document.getElementById('drink-icon').innerText = currentDrink.icon;
+            document.getElementById('drink-name').innerText = currentDrink.name;
+
+            document.getElementById('sticker-left').innerText = currentDrink.stickerL;
+            document.getElementById('sticker-right').innerText = currentDrink.stickerR;
+        }
+
+        document.addEventListener('click', function(e) {
+            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'A') return;
+
+            const particleCount = 6;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+
+                const size = Math.random() * 10 + 6;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+
+                particle.style.left = `${e.clientX}px`;
+                particle.style.top = `${e.clientY}px`;
+
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 45 + 15;
+                const dx = Math.cos(angle) * distance;
+                const dy = Math.sin(angle) * distance;
+
+                particle.style.setProperty('--dx', `${dx}px`);
+                particle.style.setProperty('--dy', `${dy}px`);
+
+                document.body.appendChild(particle);
+
+                setTimeout(() => {
+                    particle.remove();
+                }, 800);
+            }
+        });
+
+        const playlist = [
+            { title: "☕ Bossa Nova Lounge", src: "aurectheme-bossa-nova-587558.mp3" },
+            { title: "🎷 Jazz Coffee Shop Music", src: "alex-morgan-jazz-coffee-shop-music-571652.mp3" },
+            { title: "🎧 Lo-Fi Vlog BGM", src: "prettyjohn1-vlog-intro-581167.mp3" }
+        ];
+        let currentTrack = 0;
+        const player = document.getElementById('bgm-player');
+        player.src = playlist[0].src;
+
+        function toggleBgm() {
+            const btn = document.getElementById('bgm-btn');
+            if (player.paused) {
+                player.play();
+                btn.innerText = "음악 일시정지 ⏸️";
+            } else {
+                player.pause();
+                btn.innerText = "음악 재생 ▶️";
+            }
+        }
+
+        function changeTrack() {
+            currentTrack = (currentTrack + 1) % playlist.length;
+            player.src = playlist[currentTrack].src;
+            document.getElementById('song-text').innerText = playlist[currentTrack].title;
+            
+            const btn = document.getElementById('bgm-btn');
+            player.play();
+            btn.innerText = "음악 일시정지 ⏸️";
+        }
+    </script>
 </body>
 </html>
